@@ -29,7 +29,8 @@ def extract_choice_data(id):
             df = pd.read_csv(file).assign(id=id, block=i)
             df["rt"] = df["t_self_options_on"] - df["t_self_highlight_on"]  # Response time = time options are shown - time a chosen option is highlighted
             df["self_choice"] = df["self_choice_stim_idx"]
-            df = df[["id", "block", "partner_choice", "partner_reward", "self_choice", "rt"]]
+            df["trial"] = df.index.tolist()
+            df = df[["id", "block", "trial", "partner_choice", "partner_reward", "self_choice", "rt"]]
             dfs.append(df)
 
     choice_data = pd.concat(dfs, ignore_index=True)
