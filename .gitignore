@@ -1,3 +1,4 @@
 data/**
 .idea/**
 preprocess/preprocessed_data.csv
+*.pyc
