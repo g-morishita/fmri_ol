@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize, Bounds, LinearConstraint
-from nll import nll, nll_per_session_full
+from scipy.optimize import minimize, Bounds
+from analysis.computational_analysis.nll import nll, nll_per_session_full
 from pathlib import Path
 
 DATA_PATH = Path("preprocess/preprocessed_data.csv")
