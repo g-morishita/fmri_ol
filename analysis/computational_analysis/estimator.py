@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import minimize
 from analysis.computational_analysis.nll import nll, nll_per_session_full
 
 class FullModel:
