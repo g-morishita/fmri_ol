@@ -28,7 +28,7 @@ class AsocialRewardModel:
     def make_choice(self):
         choice_prob = self.get_choice_prob()
         return np.random.choice(len(choice_prob), p=choice_prob)
-    
+
 
 class FullModel:
     def __init__(self, reward_lr, action_lr, weight_for_A, beta):
@@ -58,7 +58,7 @@ class FullModel:
             self.A[other_choice] += self.action_lr * (1 - self.A[other_choice])
             for i in range(len(self.A)):
                 if i != other_choice:
-                    self.A[i] -= self.action_lr * self.A[other_choice]
+                    self.A[i] -= self.action_lr * self.A[i]
     
     def get_choice_prob(self):
         Q = (1 - self.weight_for_A) * self.V + self.weight_for_A * self.A
@@ -68,3 +68,8 @@ class FullModel:
     def make_choice(self):
         choice_prob = self.get_choice_prob()
         return np.random.choice(len(choice_prob), p=choice_prob)
+    
+
+class SocialRewardModel(FullModel):
+    def __init__(self, reward_lr, beta):
+        super().__init__(reward_lr, action_lr=0.0, weight_for_A=0.0, beta=beta)
