@@ -43,7 +43,7 @@ def fit_full(set_other_rewards, set_other_choices, set_self_choices):
     for _ in range(30):
         x0 = [np.random.uniform(), np.random.uniform(), np.random.uniform(), np.random.uniform(0, 100)]
         bounds = Bounds([0, 0, 0, 0], [1, 1, 1, 100])
-        res = minimize(obj_func, x0, options={"maxiter": 1000, "disp": False}, bounds=bounds)
+        res = minimize(obj_func, x0, options={"maxiter": 100_000}, bounds=bounds)
         if res.success:
             if min_nll > res.fun:
                 min_nll = res.fun
