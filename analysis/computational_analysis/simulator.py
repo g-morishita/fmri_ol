@@ -73,3 +73,8 @@ class FullModel:
 class SocialRewardModel(FullModel):
     def __init__(self, reward_lr, beta):
         super().__init__(reward_lr, action_lr=0.0, weight_for_A=0.0, beta=beta)
+
+
+class SocialActionModel(FullModel):
+    def __init__(self, action_lr, beta):
+        super().__init__(reward_lr=0.0, action_lr=action_lr, weight_for_A=1.0, beta=beta)

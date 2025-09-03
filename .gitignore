@@ -2,3 +2,15 @@ data/**
 .idea/**
 preprocess/preprocessed_data.csv
 *.pyc
+.DS_Store
+*tsv
+*gz
+*png
+misc/**
+*pdf
+*csv
+*json
+analysis/computational_analysis/stan/act_rel_weight_full
+analysis/computational_analysis/stan/action
+analysis/computational_analysis/stan/full
+analysis/computational_analysis/stan/reward

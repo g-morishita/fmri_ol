@@ -3,7 +3,7 @@ from scipy.optimize import minimize
 from analysis.computational_analysis.nll import nll, nll_per_session_full, nll_per_session_q
 from tqdm import tqdm
 
-class FullModel:
+class MLEFullModel:
     def __init__(self):
         self.reward_lr = None
         self.action_lr = None
@@ -42,7 +42,22 @@ class FullModel:
         return best_x, min_nll
 
 
-class RewardModel:
+class HBFullModel:
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        # Reset values to initial state
+        self.reward_lr = None
+        self.action_lr = None
+        self.weight_for_A = None
+        self.beta = None
+    
+    def fit(self, set_other_rewards, set_other_choices, set_self_choices):
+        pass
+
+
+class MLERewardModel:
     def __init__(self):
         self.reward_lr = None
         self.beta = None
