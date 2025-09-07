@@ -18,7 +18,7 @@ class Setting:
     INTERIM_RESULTS_DIR = BASE_DIR / "interim_results"
     FIGURES_DIR = BASE_DIR / "figures"
     NEUROIMAGING_RESULTS_DIR = BASE_DIR / "neuroimaging_results"
-    SUBJECTS = list(range(1, 19)) + list(range(20, 38))  # Exclude subject 19
+    SUBJECTS = list(range(1, 5)) + list(range(6, 19)) + list(range(20, 23))  # Exclude subject 19
     INTERNAL_ID2SUBJECT_ID = {i+1: sub_id for i, sub_id in enumerate(SUBJECTS)}
     RUNS = [1, 2, 3, 4]
 
@@ -77,13 +77,13 @@ def save_contrast_maps(first, subject_id):
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # your design column is named by trial_type -> 'outcome'
-    con = {"RPE": {"outcome_rpe": 1.0}}
+    con = {"RPE": "outcome_rpe"}
 
     rows = []
-    for name, vec in con.items():
-        beta = first.compute_contrast(vec, output_type="effect_size")
-        var  = first.compute_contrast(vec, output_type="effect_variance")
-        zmap = first.compute_contrast(vec, output_type="z_score")
+    for name, regressor in con.items():
+        beta = first.compute_contrast(regressor, output_type="effect_size")
+        var  = first.compute_contrast(regressor, output_type="effect_variance")
+        zmap = first.compute_contrast(regressor, output_type="z_score")
 
         beta_p = out_dir / f"{name}_beta.nii.gz"
         var_p  = out_dir / f"{name}_var.nii.gz"
