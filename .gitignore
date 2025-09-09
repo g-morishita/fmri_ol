@@ -14,3 +14,4 @@ analysis/computational_analysis/stan/act_rel_weight_full
 analysis/computational_analysis/stan/action
 analysis/computational_analysis/stan/full
 analysis/computational_analysis/stan/reward
+.*
