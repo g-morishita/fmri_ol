@@ -73,30 +73,38 @@ def save_contrast_maps(first, subject_id):
     out_dir = Setting.NEUROIMAGING_RESULTS_DIR / f"sub-{subject_id:03d}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # your design column is named by trial_type -> 'outcome'
-    con = {"RPE": "rpe", "APE": "ape", "SelfChoice": "self_choice", "OtherChoice": "other_choice", "OtherOutcome": "other_outcome"}
+    con = {
+        "RPE": "rpe",
+        "APE": "ape",
+        "SelfChoice": "self_choice",
+        "OtherChoice": "other_choice",
+        "OtherOutcome": "other_outcome",
+        # difference contrasts ↓
+        "SelfMinusOtherChoice": "self_choice - other_choice",
+        "OtherMinusSelfChoice": "other_choice - self_choice",
+    }
 
     rows = []
-    for name, regressor in con.items():
-        beta = first.compute_contrast(regressor, output_type="effect_size")
-        var  = first.compute_contrast(regressor, output_type="effect_variance")
-        zmap = first.compute_contrast(regressor, output_type="z_score")
+    for name, reg in con.items():
+        beta = first.compute_contrast(reg, output_type="effect_size")      # β map
+        var  = first.compute_contrast(reg, output_type="effect_variance")  # var(β)
+        zmap = first.compute_contrast(reg, output_type="z_score")          # Z
 
         beta_p = out_dir / f"{name}_beta.nii.gz"
         var_p  = out_dir / f"{name}_var.nii.gz"
         z_p    = out_dir / f"{name}_zmap.nii.gz"
 
         beta.to_filename(beta_p); var.to_filename(var_p); zmap.to_filename(z_p)
-
         rows.append({
             "subject_label": f"sub-{subject_id:03d}",
             "map_name": name,
             "effect_map": str(beta_p),
             "variance_map": str(var_p),
-            "z_map": str(z_p)
+            "z_map": str(z_p),
         })
 
     pd.DataFrame(rows).to_csv(out_dir / "manifest.tsv", sep="\t", index=False)
+
 
 
 def main():
