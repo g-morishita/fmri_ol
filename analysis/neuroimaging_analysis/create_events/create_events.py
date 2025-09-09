@@ -120,7 +120,6 @@ def main():
                 set_events.append(create_events(choice_data, name, duration))
 
             events = pd.concat(set_events, ignore_index=True)
-            n = events.shape[0]
             events.dropna(subset=["onset"], inplace=True)
             events.sort_values(by="onset", inplace=True)
                 
