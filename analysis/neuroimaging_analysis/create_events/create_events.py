@@ -116,10 +116,12 @@ def main():
             set_events = [create_events_rpe(choice_data, lr_reward)]
             set_events.append(create_events_ape(choice_data, lr_action))
             set_events.append(create_self_choice_events(choice_data))
-            for name, duration in [("other_choice", 2.0), ("other_outcome", 2.0)]:
+            for name, duration in [("other_choice", 0.0), ("other_outcome", 0.0)]:
                 set_events.append(create_events(choice_data, name, duration))
 
             events = pd.concat(set_events, ignore_index=True)
+            n = events.shape[0]
+            events.dropna(subset=["onset"], inplace=True)
             events.sort_values(by="onset", inplace=True)
                 
             save_path = Setting.EVENT_DATA_PATH / f"sub-{subject_id:03d}" 

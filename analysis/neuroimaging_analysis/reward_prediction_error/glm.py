@@ -14,6 +14,7 @@ from nilearn.masking import apply_mask
 class Setting:
     BASE_DIR = Path(__file__).resolve().parent # Directory of the current script
     NEURAL_DATA_DIR = BASE_DIR / "../../../data/derivatives/"
+    EVENTS_DATA_PATH = BASE_DIR / "../../../data/events/"
 
     INTERIM_RESULTS_DIR = BASE_DIR / "interim_results"
     FIGURES_DIR = BASE_DIR / "figures"
@@ -33,14 +34,10 @@ class Setting:
 
 
 def fetch_events(subject_id, run):
-    p = Setting.INTERIM_RESULTS_DIR / f"sub-{subject_id:03d}" / f"sub-{subject_id:03d}_task-ol_run-{run:02d}_events.tsv"
-    ev = pd.read_csv(p, sep="\t").copy()
+    events_path = Setting.EVENTS_DATA_PATH / f"sub-{subject_id:03d}" / f"sub-{subject_id:03d}_task-ol_run-{run:02d}_events.tsv"
+    events = pd.read_csv(events_path, sep="\t")
 
-    outcome = ev[["onset","duration"]].copy()
-    outcome["trial_type"] = "outcome"
-    outcome["modulation"]  = 1.0
-
-    return pd.concat([outcome, ev], ignore_index=True)
+    return events
 
 
 def ensure_sample_mask(bold_file, sample_mask):
@@ -77,7 +74,7 @@ def save_contrast_maps(first, subject_id):
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # your design column is named by trial_type -> 'outcome'
-    con = {"RPE": "outcome_rpe"}
+    con = {"RPE": "rpe", "APE": "ape", "SelfChoice": "self_choice", "OtherChoice": "other_choice", "OtherOutcome": "other_outcome"}
 
     rows = []
     for name, regressor in con.items():
@@ -120,8 +117,8 @@ def main():
             sample_masks.append(sample_mask)
 
         first = FirstLevelModel(
-            t_r=0.8, hrf_model='spm', drift_model='cosine',
-            high_pass=1/128, noise_model='ar1', smoothing_fwhm=6.0
+            t_r=0.8, hrf_model='spm', drift_model=None,
+            high_pass=None, noise_model='ar1', smoothing_fwhm=8.0
         )
 
         print(f"Fitting first-level model for Subject {subject_id:03d}...")
