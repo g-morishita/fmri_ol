@@ -120,9 +120,6 @@ def main():
 
     print("All subjects processed.")
 
-    print("Second-Level modeling...")
-
-
 
 if __name__ == "__main__":
     Setting.create_directories()
