@@ -98,8 +98,8 @@ def create_events(choice_data, name, duration):
 
 def create_self_choice_events(choice_data):
     onsets_self_choice = choice_data["t_self_choice_on"]
-    onsets_self_displyed_options = choice_data["t_self_options_on"]
-    rts = onsets_self_displyed_options - onsets_self_choice
+    onsets_self_options = choice_data["t_self_options_on"]
+    rts = onsets_self_choice - onsets_self_options
     events = pd.DataFrame({"onset": onsets_self_choice, "duration": rts.tolist(), "trial_type": "self_choice", "modulation": 1})
     return events
 
