@@ -19,7 +19,7 @@ class Setting:
     INTERIM_RESULTS_DIR = BASE_DIR / "interim_results"
     FIGURES_DIR = BASE_DIR / "figures"
     NEUROIMAGING_RESULTS_DIR = BASE_DIR / "neuroimaging_results"
-    SUBJECTS = list(range(1, 5)) + list(range(6, 19)) + list(range(20, 23))  # Exclude subject 19
+    SUBJECTS = list(range(1, 5)) + list(range(6, 19)) + list(range(20, 25)) + list(range(27, 30))  # Exclude subject 5, 19, and 26
     INTERNAL_ID2SUBJECT_ID = {i+1: sub_id for i, sub_id in enumerate(SUBJECTS)}
     RUNS = [1, 2, 3, 4]
 
@@ -106,10 +106,14 @@ def save_contrast_maps(first, subject_id):
     pd.DataFrame(rows).to_csv(out_dir / "manifest.tsv", sep="\t", index=False)
 
 
-
 def main():
     for subject_id in Setting.SUBJECTS:
         print(f"Processing Subject {subject_id:03d}...")
+
+        neural_result = Setting.NEUROIMAGING_RESULTS_DIR / f"sub-{subject_id:03d}" / "RPE_beta.nii.gz"
+        if neural_result.exists():
+            print(f"Subject {subject_id:03d} already processed, skipping.")
+            continue
 
         events = []
         bold_files = []
