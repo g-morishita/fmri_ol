@@ -72,7 +72,7 @@ def create_events_value_reward(choice_data, lr):
     values = np.ones(3) / 2
     partner_choice = choice_data["partner_choice"].tolist()
     partner_reward = choice_data["partner_reward"].tolist()
-    onsets = choice_data["t_other_choice"].tolist()
+    onsets = choice_data["t_other_outcome"].tolist()
     vals = []
     for c, r in zip(partner_choice, partner_reward):
         val = values[c]
@@ -121,11 +121,15 @@ def create_events(choice_data, name, duration):
 
 
 def create_self_choice_events(choice_data):
-    onsets_self_choice = choice_data["t_self_choice_on"]
     onsets_self_options = choice_data["t_self_options_on"]
+    onsets_self_choice  = choice_data["t_self_choice_on"]
     rts = onsets_self_choice - onsets_self_options
-    events = pd.DataFrame({"onset": onsets_self_choice, "duration": rts.tolist(), "trial_type": "self_choice", "modulation": 1})
-    return events
+    return pd.DataFrame({
+        "onset": onsets_self_options,      # <-- start at options onset
+        "duration": rts.tolist(),          # epoch until choice
+        "trial_type": "self_choice",
+        "modulation": 1.0,
+    })
 
 
 def main():
