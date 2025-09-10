@@ -79,7 +79,7 @@ def save_contrast_maps(first, subject_id):
         "SelfChoice": "self_choice",
         "OtherChoice": "other_choice",
         "OtherOutcome": "other_outcome",
-        # difference contrasts ↓
+        # difference contrasts
         "SelfMinusOtherChoice": "self_choice - other_choice",
         "OtherMinusSelfChoice": "other_choice - self_choice",
     }
