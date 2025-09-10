@@ -68,6 +68,30 @@ def create_events_rpe(choice_data, lr):
     return events
 
 
+def create_events_value_reward(choice_data, lr):
+    values = np.ones(3) / 2
+    partner_choice = choice_data["partner_choice"].tolist()
+    partner_reward = choice_data["partner_reward"].tolist()
+    onsets = choice_data["t_other_choice"].tolist()
+    vals = []
+    for c, r in zip(partner_choice, partner_reward):
+        val = values[c]
+        vals.append(val)
+        values[c] += lr * (r - values[c])
+
+    # Z-standarize the values
+    vals = np.array(vals)
+    vals = (vals - np.mean(vals)) / np.std(vals)
+
+    # Z-standarize the rewards
+    partner_reward = np.array(partner_reward)
+    partner_reward = (partner_reward - np.mean(partner_reward)) / np.std(partner_reward)
+
+    events = pd.DataFrame({"onset": onsets, "duration": 0.0, "trial_type": "reward", "modulation": partner_reward})
+    events2 = pd.DataFrame({"onset": onsets, "duration": 0.0, "trial_type": "value", "modulation": vals})
+    return pd.concat([events, events2], ignore_index=True)
+
+
 def create_events_ape(choice_data, lr):
     action_tendencies = np.ones(3) / 3
     partner_choice = choice_data["partner_choice"].tolist()
@@ -116,6 +140,7 @@ def main():
             set_events = [create_events_rpe(choice_data, lr_reward)]
             set_events.append(create_events_ape(choice_data, lr_action))
             set_events.append(create_self_choice_events(choice_data))
+            set_events.append(create_events_value_reward(choice_data, lr_reward))
             for name, duration in [("other_choice", 0.0), ("other_outcome", 0.0)]:
                 set_events.append(create_events(choice_data, name, duration))
 
