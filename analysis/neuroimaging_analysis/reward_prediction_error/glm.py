@@ -36,6 +36,8 @@ class Setting:
 def fetch_events(subject_id, run):
     events_path = Setting.EVENTS_DATA_PATH / f"sub-{subject_id:03d}" / f"sub-{subject_id:03d}_task-ol_run-{run:02d}_events.tsv"
     events = pd.read_csv(events_path, sep="\t")
+    events.query("trial_type != 'reward' and trial_type != 'value'", inplace=True)
+    events.dropna(inplace=True)
 
     return events
 
@@ -54,8 +56,6 @@ def load_bold_and_confounds(subject_id, run):
 
     confound, sample_mask = load_confounds_strategy(
         str(bold_file),
-        denoise_strategy="scrubbing",
-        fd_threshold=0.5, std_dvars_threshold=1.5
     )
     sample_mask = ensure_sample_mask(str(bold_file), sample_mask)  # keep all if None
     return bold_file, confound, sample_mask
@@ -76,12 +76,12 @@ def save_contrast_maps(first, subject_id):
     con = {
         "RPE": "rpe",
         "APE": "ape",
-        "SelfChoice": "self_choice",
+        "SelfChoice": "self_choice_on",
         "OtherChoice": "other_choice",
         "OtherOutcome": "other_outcome",
         # difference contrasts
-        "SelfMinusOtherChoice": "self_choice - other_choice",
-        "OtherMinusSelfChoice": "other_choice - self_choice",
+        "SelfMinusOtherChoice": "self_choice_on - other_choice",
+        "OtherMinusSelfChoice": "other_choice - self_choice_on",
     }
 
     rows = []
@@ -106,12 +106,12 @@ def save_contrast_maps(first, subject_id):
     pd.DataFrame(rows).to_csv(out_dir / "manifest.tsv", sep="\t", index=False)
 
 
-def main():
+def main(is_skipped=False):
     for subject_id in Setting.SUBJECTS:
         print(f"Processing Subject {subject_id:03d}...")
 
         neural_result = Setting.NEUROIMAGING_RESULTS_DIR / f"sub-{subject_id:03d}" / "RPE_beta.nii.gz"
-        if neural_result.exists():
+        if is_skipped and neural_result.exists():
             print(f"Subject {subject_id:03d} already processed, skipping.")
             continue
 

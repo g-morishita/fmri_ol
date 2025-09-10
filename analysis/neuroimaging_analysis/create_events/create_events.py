@@ -113,6 +113,18 @@ def create_events_ape(choice_data, lr):
     events = pd.DataFrame({"onset": onsets, "duration": 0.0, "trial_type": "ape", "modulation": pes})
     return events
 
+def create_events_others_outcome(choice_data):
+    onsens = choice_data["t_other_outcome"].tolist()
+    partner_rewards = choice_data["partner_reward"]
+    rewarded = partner_rewards == 1
+    rewarded_onsets = onsens[rewarded].tolist()
+    rewarded_events = pd.DataFrame({"onset": rewarded_onsets, "duration": 0.0, "trial_type": "other_rewarded_outcome", "modulation": 1})
+    unrewarded = partner_rewards == 0
+    unrewarded_onsets = onsens[unrewarded].tolist()
+    unrewarded_events = pd.DataFrame({"onset": unrewarded_onsets, "duration": 0.0, "trial_type": "other_non_rewarded_outcome", "modulation": 1})
+    events = pd.concat([rewarded_events, unrewarded_events], ignore_index=True)
+    return events
+
 
 def create_events(choice_data, name, duration):
     onsens = choice_data[f"t_{name}"].tolist()
@@ -131,8 +143,8 @@ def main():
             
             set_events = [create_events_rpe(choice_data, lr_reward)]
             set_events.append(create_events_ape(choice_data, lr_action))
-            set_events.append(create_events_value_reward(choice_data, lr_reward))
-            for name, duration in [("other_choice", 0.0), ("other_outcome", 0.0), ("self_choice_on", 0.0), ("self_options_on", 0.0), ("other_options", 0.0)]:
+            # set_events.append(create_events_value_reward(choice_data, lr_reward))
+            for name, duration in [("other_options", 0.0), ("other_choice", 0.0), ('other_outcome', 0.0), ("self_choice_on", 0.0), ("self_options_on", 0.0)]:
                 set_events.append(create_events(choice_data, name, duration))
 
             events = pd.concat(set_events, ignore_index=True)
