@@ -23,6 +23,8 @@ class Setting:
     INTERNAL_ID2SUBJECT_ID = {i+1: sub_id for i, sub_id in enumerate(SUBJECTS)}
     RUNS = [1, 2, 3, 4]
 
+    CONFOUND_COLS = ["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]
+
     @staticmethod
     def create_directories():
         Setting.INTERIM_RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -50,13 +52,16 @@ def ensure_sample_mask(bold_file, sample_mask):
     return sample_mask
 
 
-def load_bold_and_confounds(subject_id, run):
+def load_bold_and_confounds(subject_id, run, used_columns=None):
     func_path = Setting.NEURAL_DATA_DIR / f"sub-{subject_id:03d}" / "ses-01" / "func"
     bold_file = func_path / f"sub-{subject_id:03d}_ses-01_task-ol_run-{run:02d}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
     confound, sample_mask = load_confounds_strategy(
         str(bold_file),
     )
+    if used_columns is not None:
+        confound = confound[used_columns]
+
     sample_mask = ensure_sample_mask(str(bold_file), sample_mask)  # keep all if None
     return bold_file, confound, sample_mask
 
@@ -123,7 +128,7 @@ def main(is_skipped=False):
         for run in Setting.RUNS:
             events.append(fetch_events(subject_id, run))
 
-            bold_file, confound, sample_mask = load_bold_and_confounds(subject_id, run)
+            bold_file, confound, sample_mask = load_bold_and_confounds(subject_id, run, Setting.CONFOUND_COLS)
             bold_files.append(bold_file)
             confounds.append(confound)
             sample_masks.append(sample_mask)
