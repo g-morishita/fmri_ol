@@ -61,8 +61,8 @@ def create_events_rpe(choice_data, lr):
         pes.append(pe)
 
     # Z-standarize the prediction errors
-    pes = np.array(pes)
-    pes = (pes - np.mean(pes)) / np.std(pes)
+    # pes = np.array(pes)
+    # pes = (pes - np.mean(pes)) / np.std(pes)
 
     events = pd.DataFrame({"onset": onsets, "duration": 0.0, "trial_type": "rpe", "modulation": pes})
     return events
@@ -80,8 +80,8 @@ def create_events_value_reward(choice_data, lr):
         values[c] += lr * (r - values[c])
 
     # Z-standarize the values
-    vals = np.array(vals)
-    vals = (vals - np.mean(vals)) / np.std(vals)
+    # vals = np.array(vals)
+    # vals = (vals - np.mean(vals)) / np.std(vals)
 
     # Z-standarize the rewards
     partner_reward = np.array(partner_reward)
@@ -107,8 +107,8 @@ def create_events_ape(choice_data, lr):
         pes.append(pe)
     
     # Z-standarize the prediction errors
-    pes = np.array(pes)
-    pes = (pes - np.mean(pes)) / np.std(pes)
+    # pes = np.array(pes)
+    # pes = (pes - np.mean(pes)) / np.std(pes)
 
     events = pd.DataFrame({"onset": onsets, "duration": 0.0, "trial_type": "ape", "modulation": pes})
     return events
@@ -126,6 +126,15 @@ def create_events_others_outcome(choice_data):
     return events
 
 
+def create_events_self_options(choice_data):
+    onsets_self_choice = choice_data["t_self_choice_on"]
+    onsets_self_options = choice_data["t_self_options_on"]
+    rt = onsets_self_choice - onsets_self_options
+
+    events = pd.DataFrame({"onset": onsets_self_options, "duration": rt.tolist(), "trial_type": "self_options", "modulation": 1})
+    return events
+
+
 def create_events(choice_data, name, duration):
     onsens = choice_data[f"t_{name}"].tolist()
     events = pd.DataFrame({"onset": onsens, "duration": duration, "trial_type": name, "modulation": 1})
@@ -133,18 +142,39 @@ def create_events(choice_data, name, duration):
 
 
 def main():
+    conditions = {"subject_id": [], "run": [], "condition": []}
+    reward_prediction_errors = {"subject_id": [], "run": [], "trial": [], "rpe": []}
+    action_prediction_errors = {"subject_id": [], "run": [], "trial": [], "ape": []}
+
     for subject_id in Setting.SUBJECTS:
         if subject_id == 19: # subject 19 has no MRI data
             continue
         for run in range(1, 5):
             condition = extract_condition(subject_id, run)
+            conditions["subject_id"].append(subject_id)
+            conditions["run"].append(run)
+            conditions["condition"].append(condition)
+
             lr_reward, lr_action = extract_learning_rates(subject_id, condition)
             choice_data = extract_choice_data(subject_id, run)
             
-            set_events = [create_events_rpe(choice_data, lr_reward)]
-            set_events.append(create_events_ape(choice_data, lr_action))
+            rpe = create_events_rpe(choice_data, lr_reward)
+            ape = create_events_ape(choice_data, lr_action)
+            reward_prediction_errors["subject_id"].extend([subject_id] * len(rpe))
+            reward_prediction_errors["run"].extend([run] * len(rpe))
+            reward_prediction_errors["trial"].extend(list(range(1, len(rpe) + 1)))
+            reward_prediction_errors["rpe"].extend(rpe["modulation"].tolist())
+
+            action_prediction_errors["subject_id"].extend([subject_id] * len(ape))
+            action_prediction_errors["run"].extend([run] * len(ape))
+            action_prediction_errors["trial"].extend(list(range(1, len(ape) + 1)))
+            action_prediction_errors["ape"].extend(ape["modulation"].tolist())
+            
+            set_events = [rpe]
+            set_events.append(ape)
             # set_events.append(create_events_value_reward(choice_data, lr_reward))
-            for name, duration in [("other_options", 0.0), ("other_choice", 0.0), ('other_outcome', 0.0), ("self_choice_on", 0.0), ("self_options_on", 0.0)]:
+            set_events.append(create_events_self_options(choice_data))
+            for name, duration in [("other_options", 2.0), ("other_choice", 0.0), ('other_outcome', 0.0), ("self_choice_on", 1.0)]:
                 set_events.append(create_events(choice_data, name, duration))
 
             events = pd.concat(set_events, ignore_index=True)
@@ -155,6 +185,12 @@ def main():
             save_path.mkdir(parents=True, exist_ok=True)
             events.to_csv(save_path / f"sub-{subject_id:03d}_task-ol_run-{run:02d}_events.tsv", sep="\t", index=False)
             print(f"Saved events for subject {subject_id}, run {run}")
+
+    preprocessed_dir = (Setting.BASE_DIR / "../../../data/preprocessed").resolve()
+
+    pd.DataFrame(conditions).to_csv(preprocessed_dir / "conditions.csv", index=False)
+    pd.DataFrame(reward_prediction_errors).to_csv(preprocessed_dir / "reward_prediction_errors.csv", index=False)
+    pd.DataFrame(action_prediction_errors).to_csv(preprocessed_dir / "action_prediction_errors.csv", index=False)
 
 
 if __name__ == "__main__":
