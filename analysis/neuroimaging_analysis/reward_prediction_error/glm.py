@@ -129,15 +129,15 @@ def main(is_skipped=False):
         confounds = []
         sample_masks = []
 
-        for run in Setting.RUNS:
-            events.append(fetch_events(subject_id, run))
-                
+        for run in Setting.RUNS:                
             bold_file, confound, sample_mask = load_bold_and_confounds(subject_id, run, Setting.CONFOUND_COLS)
             if bold_file is None:
                 print(f"  Warning: Could not load BOLD or confounds for Subject {subject_id:03d}, Run {run:02d}. Skipping this run.")
                 continue
+            bold_files.append(bold_file)
             confounds.append(confound)
             sample_masks.append(sample_mask)
+            events.append(fetch_events(subject_id, run))
 
         first = FirstLevelModel(
             t_r=0.8, hrf_model='spm', drift_model=None,
