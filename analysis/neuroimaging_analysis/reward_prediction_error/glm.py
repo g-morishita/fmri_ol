@@ -1,4 +1,4 @@
-import os, glob
+import json
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -56,9 +56,13 @@ def load_bold_and_confounds(subject_id, run, used_columns=None):
     func_path = Setting.NEURAL_DATA_DIR / f"sub-{subject_id:03d}" / "ses-01" / "func"
     bold_file = func_path / f"sub-{subject_id:03d}_ses-01_task-ol_run-{run:02d}_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz"
 
-    confound, sample_mask = load_confounds_strategy(
-        str(bold_file),
-    )
+    try:
+        confound, sample_mask = load_confounds_strategy(
+            str(bold_file),
+        )
+    except json.decoder.JSONDecodeError:
+        return None, None, None
+    
     if used_columns is not None:
         confound = confound[used_columns]
 
@@ -127,9 +131,11 @@ def main(is_skipped=False):
 
         for run in Setting.RUNS:
             events.append(fetch_events(subject_id, run))
-
+                
             bold_file, confound, sample_mask = load_bold_and_confounds(subject_id, run, Setting.CONFOUND_COLS)
-            bold_files.append(bold_file)
+            if bold_file is None:
+                print(f"  Warning: Could not load BOLD or confounds for Subject {subject_id:03d}, Run {run:02d}. Skipping this run.")
+                continue
             confounds.append(confound)
             sample_masks.append(sample_mask)
 
@@ -150,4 +156,4 @@ def main(is_skipped=False):
 
 if __name__ == "__main__":
     Setting.create_directories()
-    main()
+    main(True)
