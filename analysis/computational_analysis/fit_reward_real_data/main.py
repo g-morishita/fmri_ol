@@ -45,7 +45,7 @@ def main():
     idata = az.from_cmdstanpy(posterior=fit, log_likelihood="log_lik")
     waic_res = az.waic(idata, pointwise=True)
     print(waic_res)
-    breakpoint()
+    waic_res.to_csv(BASE_DIR / "results/waic.csv")
 
 
 if __name__ == "__main__":
