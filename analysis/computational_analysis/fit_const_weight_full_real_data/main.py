@@ -46,5 +46,6 @@ def main():
     waic_res = az.waic(idata, pointwise=True)
     print(waic_res)
 
+
 if __name__ == "__main__":
     main()
