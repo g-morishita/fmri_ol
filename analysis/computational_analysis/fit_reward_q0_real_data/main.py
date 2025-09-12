@@ -18,7 +18,7 @@ def read_stan_data():
 
 
 def fit_full_model(data):
-    model_path = BASE_DIR / "../stan/reward.stan"
+    model_path = BASE_DIR / "../stan/reward_q0.stan"
     model = cmdstanpy.CmdStanModel(stan_file=model_path)
     fit = model.sample(data=data, chains=4, parallel_chains=4, iter_warmup=1000, iter_sampling=1000, seed=123, adapt_delta=0.999, max_treedepth=15)
     print(fit.diagnose())
@@ -45,7 +45,7 @@ def main():
     idata = az.from_cmdstanpy(posterior=fit, log_likelihood="log_lik")
     waic_res = az.waic(idata, pointwise=True)
     print(waic_res)
-    breakpoint()
+    waic_res.to_csv(BASE_DIR / "results/waic.csv")
 
 
 if __name__ == "__main__":

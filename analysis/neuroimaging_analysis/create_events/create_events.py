@@ -68,6 +68,22 @@ def create_events_rpe(choice_data, lr):
     return events
 
 
+def create_events_rp_init_q0(choice_data, lr):
+    values = np.zeros(3)
+    partner_choice = choice_data["partner_choice"].tolist()
+    partner_reward = choice_data["partner_reward"].tolist()
+    onsets = choice_data["t_other_outcome"].tolist()
+    pes = []
+    for c, r in zip(partner_choice, partner_reward):
+        pe = r - values[c]
+        values[c] += lr * pe
+        pes.append(pe)
+
+    events = pd.DataFrame({"onset": onsets, "duration": 0.0, "trial_type": "rpe_q0", "modulation": pes})
+    return events
+
+
+# Not used anymore
 def create_events_value_reward(choice_data, lr):
     values = np.ones(3) / 2
     partner_choice = choice_data["partner_choice"].tolist()
@@ -159,7 +175,9 @@ def main():
             choice_data = extract_choice_data(subject_id, run)
             
             rpe = create_events_rpe(choice_data, lr_reward)
+            rpe_q0 = create_events_rp_init_q0(choice_data, lr_reward)
             ape = create_events_ape(choice_data, lr_action)
+
             reward_prediction_errors["subject_id"].extend([subject_id] * len(rpe))
             reward_prediction_errors["run"].extend([run] * len(rpe))
             reward_prediction_errors["trial"].extend(list(range(1, len(rpe) + 1)))
@@ -172,6 +190,7 @@ def main():
             
             set_events = [rpe]
             set_events.append(ape)
+            set_events.append(rpe_q0)
             # set_events.append(create_events_value_reward(choice_data, lr_reward))
             set_events.append(create_events_self_options(choice_data))
             for name, duration in [("other_options", 2.0), ("other_choice", 0.0), ('other_outcome', 0.0), ("self_choice_on", 1.0)]:
