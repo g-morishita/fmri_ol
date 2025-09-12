@@ -8,7 +8,7 @@ OTHER_LR = 0.3
 HIGH_NOISE_BETA = 1.5
 LOW_NOISE_BETA = 20.0
 REWARD_PROBS = [0.25, 0.5, 0.75]  # probabilities for each choice
-STAN_MODEL_PATH = Path("analysis/computational_analysis/stan/full.stan")
+STAN_MODEL_PATH = Path("../stan/full.stan").resolve()
 
 
 def simulate_choice_data(n_subjects, n_blocks, n_trials,
@@ -141,7 +141,9 @@ def main(seed):
     )
 
     # Fit the Stan model
-    results_path = Path(f"results/BH_full_parameter_recovery_model_summary_seed={seed}.csv")
+    results_path = Path(f"results/{seed}/model_summary.csv")
+    results_path.parent.mkdir(parents=True, exist_ok=True)
+
     fit = estimate(stan_data, STAN_MODEL_PATH, results_path)
 
     # Extract individual parameters from the fit
@@ -157,7 +159,7 @@ def main(seed):
     df["est_beta_high"] = beta_high
     df["est_beta_low"] = beta_low
 
-    df.to_csv(f"results/BH_full_parameter_recovery_seed={seed}.csv", index=False)
+    df.to_csv(f"results/{seed}/true_est_comparison.csv", index=False)
 
 
 if __name__ == "__main__":
