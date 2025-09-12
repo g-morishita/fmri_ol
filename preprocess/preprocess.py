@@ -3,7 +3,8 @@ import pandas as pd
 from pathlib import Path
 
 
-DATA_ROOT = Path("../data/behavioral_data")
+DATA_ROOT = Path("../data/behavioral_data").resolve()
+OUT_DIR = Path("../data/preprocessed").resolve()
 
 
 def extract_participant_ids():
@@ -53,7 +54,7 @@ def combine_all_data():
 
 def main():
     data = combine_all_data()
-    data.to_csv("preprocessed_data.csv", index=False)
+    data.to_csv(OUT_DIR / "preprocessed_data.csv", index=False)
 
 
 if __name__ == "__main__":
