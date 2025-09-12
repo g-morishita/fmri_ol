@@ -43,7 +43,10 @@ class ParameterRecovery:
             self.set_partner_choices.append(partner_choices)
             self.set_self_choices.append(self_choices)
 
-    def fit(self, estimator):
+    def fit_by_mle(self, estimator):
         # Fit the model to the simulated data
         params, nll = estimator.fit(self.set_partner_rewards, self.set_partner_choices, self.set_self_choices)
         return params, nll
+    
+    def fit_by_bayes(self):
+        pass

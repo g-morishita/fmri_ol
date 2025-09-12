@@ -103,8 +103,8 @@ def convert_to_stan_format(df):
 # Example “main” usage:
 if __name__ == "__main__":
     debug = False
-    PREPROCESSED_DATA_PATH = Path("preprocessed_data.csv")
-    OUTPUT_PATH = Path("stan_data.json")
+    PREPROCESSED_DATA_PATH = Path("../data/preprocessed/preprocessed_data.csv").resolve()
+    OUTPUT_PATH = Path("../data/stan_model/stan_data.json").resolve()
     if debug:
         PREPROCESSED_DATA_PATH = Path("test_data.csv")
         OUTPUT_PATH = Path("test_stan_data.json")
