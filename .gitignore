@@ -15,3 +15,5 @@ analysis/computational_analysis/stan/action
 analysis/computational_analysis/stan/full
 analysis/computational_analysis/stan/reward
 .*
+*nii
+*nii.gz
