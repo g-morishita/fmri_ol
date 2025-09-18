@@ -3,7 +3,7 @@ import pandas as pd
 from pathlib import Path
 
 
-data_path = Path("../../../preprocess/")
+data_path = Path("../../../data/preprocessed").resolve()
 
 def read_data():
     df = pd.read_csv(str(data_path / "preprocessed_data.csv"))
