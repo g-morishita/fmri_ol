@@ -29,12 +29,19 @@ df_sorted = df.set_index('name').loc[order].reset_index()
 
 # Plot
 plt.figure(figsize=(7, 6))
-bars = plt.bar(df_sorted['name'], df_sorted['estimate'],
+import numpy as np
+bars = plt.bar(np.arange(4), df_sorted['estimate'],
                yerr=df_sorted['s.e.'],
                capsize=4, color='gray')
 
-plt.ylabel('Effects on the behavior', fontsize=14)
-plt.xticks(rotation=45, ha='right', fontsize=14)
+# plt.ylabel('Effects on the behavior', fontsize=14)
+# plt.xticks(rotation=45, ha='right', fontsize=14)
+# hidden x-axis labels
+plt.xticks(np.arange(4), ['']*4)
+# remove top and right spines
+plt.gca().spines['top'].set_visible(False)
+plt.gca().spines['right'].set_visible(False)
+plt.yticks([-1.0, 0.0, 1.0, 2.0], fontsize=18)
 plt.axhline(0, color='black', linewidth=0.8)
 plt.tight_layout()
 plt.savefig("plot.png", dpi=300)
