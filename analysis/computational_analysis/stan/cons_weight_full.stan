@@ -11,63 +11,154 @@ data {
 }
 
 parameters {
-  // population-level (latent scale) per condition: [1]=low, [2]=high
-  vector[2] mu_latent_lr_reward;
-  vector<lower=0>[2] sigma_latent_lr_reward;
+  // population-level (latent scale) for baseline (low-noise condition)
+  real mu_latent_lr_reward_low_noise;
+  real<lower=0> sigma_latent_lr_reward_low_noise;
 
-  vector[2] mu_latent_lr_action;
-  vector<lower=0>[2] sigma_latent_lr_action;
+  real mu_latent_lr_action_low_noise;
+  real<lower=0> sigma_latent_lr_action_low_noise;
 
-  vector[2] mu_latent_weight_for_A;
-  vector<lower=0>[2] sigma_latent_weight_for_A;
+  real mu_latent_weight_for_A_low_noise;
+  real<lower=0> sigma_latent_weight_for_A_low_noise;
 
-  vector[2] mu_latent_beta;
-  vector<lower=0>[2] sigma_latent_beta;
+  real mu_latent_beta_low_noise;
+  real<lower=0> sigma_latent_beta_low_noise;
 
-  // subject-level (latent scale) per condition
-  matrix[n_subjects, 2] latent_lr_reward;
-  matrix[n_subjects, 2] latent_lr_action;
-  matrix[n_subjects, 2] latent_weight_for_A;
-  matrix[n_subjects, 2] latent_beta;
+  // population-level (latent scale) for difference between conditions (high - low)
+  real mu_delta_latent_lr_reward;
+  real<lower=0> sigma_delta_latent_lr_reward;
+
+  real mu_delta_latent_lr_action;
+  real<lower=0> sigma_delta_latent_lr_action;
+
+  real mu_delta_latent_weight_for_A;
+  real<lower=0> sigma_delta_latent_weight_for_A;
+
+  real mu_delta_latent_beta;
+  real<lower=0> sigma_delta_latent_beta;
+
+  // standard normal subject deviations (non-centered)
+  vector[n_subjects] normal_lr_reward;
+  vector[n_subjects] normal_delta_lr_reward;
+
+  vector[n_subjects] normal_lr_action;
+  vector[n_subjects] normal_delta_lr_action;
+
+  vector[n_subjects] normal_weight_for_A;
+  vector[n_subjects] normal_delta_weight_for_A;
+
+  vector[n_subjects] normal_beta;
+  vector[n_subjects] normal_delta_beta;
 }
 
 transformed parameters {
-  // transformed per subject x condition
-  matrix<lower=0,upper=1>[n_subjects, 2] lr_reward;
-  matrix<lower=0,upper=1>[n_subjects, 2] lr_action;
-  matrix<lower=0,upper=1>[n_subjects, 2] weight_for_A;
-  matrix<lower=0>[n_subjects, 2] beta;
+  // subject-level latent parameters (non-centered construction)
+  vector[n_subjects] latent_lr_reward_low_noise;
+  vector[n_subjects] latent_lr_reward_high_noise;
 
+  vector[n_subjects] latent_lr_action_low_noise;
+  vector[n_subjects] latent_lr_action_high_noise;
+
+  vector[n_subjects] latent_weight_for_A_low_noise;
+  vector[n_subjects] latent_weight_for_A_high_noise;
+
+  vector[n_subjects] latent_beta_low_noise;
+  vector[n_subjects] latent_beta_high_noise;
+
+  // transformed per subject x condition (on constrained scales)
+  vector<lower=0,upper=1>[n_subjects] lr_reward_low_noise;
+  vector<lower=0,upper=1>[n_subjects] lr_reward_high_noise;
+
+  vector<lower=0,upper=1>[n_subjects] lr_action_low_noise;
+  vector<lower=0,upper=1>[n_subjects] lr_action_high_noise;
+
+  vector<lower=0,upper=1>[n_subjects] weight_for_A_low_noise;
+  vector<lower=0,upper=1>[n_subjects] weight_for_A_high_noise;
+
+  vector<lower=0>[n_subjects] beta_low_noise;
+  vector<lower=0>[n_subjects] beta_high_noise;
+
+  // build latent subjects
   for (i in 1:n_subjects) {
-    for (c in 1:2) {
-      lr_reward[i, c]      = Phi(mu_latent_lr_reward[c]      + sigma_latent_lr_reward[c]      * latent_lr_reward[i, c]);
-      lr_action[i, c]      = Phi(mu_latent_lr_action[c]      + sigma_latent_lr_action[c]      * latent_lr_action[i, c]);
-      weight_for_A[i, c]   = Phi(mu_latent_weight_for_A[c]   + sigma_latent_weight_for_A[c]   * latent_weight_for_A[i, c]);
-      beta[i, c]           = exp(mu_latent_beta[c] + sigma_latent_beta[c] * latent_beta[i, c]);
-    }
+    latent_lr_reward_low_noise[i]  = mu_latent_lr_reward_low_noise
+                                   + sigma_latent_lr_reward_low_noise  * normal_lr_reward[i];
+    latent_lr_reward_high_noise[i] = latent_lr_reward_low_noise[i]
+                                   + mu_delta_latent_lr_reward
+                                   + sigma_delta_latent_lr_reward * normal_delta_lr_reward[i];
+
+    latent_lr_action_low_noise[i]  = mu_latent_lr_action_low_noise
+                                   + sigma_latent_lr_action_low_noise  * normal_lr_action[i];
+    latent_lr_action_high_noise[i] = latent_lr_action_low_noise[i]
+                                   + mu_delta_latent_lr_action
+                                   + sigma_delta_latent_lr_action * normal_delta_lr_action[i];
+
+    latent_weight_for_A_low_noise[i]  = mu_latent_weight_for_A_low_noise
+                                      + sigma_latent_weight_for_A_low_noise * normal_weight_for_A[i];
+    latent_weight_for_A_high_noise[i] = latent_weight_for_A_low_noise[i]
+                                      + mu_delta_latent_weight_for_A
+                                      + sigma_delta_latent_weight_for_A * normal_delta_weight_for_A[i];
+
+    latent_beta_low_noise[i]  = mu_latent_beta_low_noise
+                              + sigma_latent_beta_low_noise * normal_beta[i];
+    latent_beta_high_noise[i] = latent_beta_low_noise[i]
+                              + mu_delta_latent_beta
+                              + sigma_delta_latent_beta * normal_delta_beta[i];
+
+    // map to constrained scales
+    lr_reward_low_noise[i]     = Phi(latent_lr_reward_low_noise[i]);
+    lr_reward_high_noise[i]    = Phi(latent_lr_reward_high_noise[i]);
+
+    lr_action_low_noise[i]     = Phi(latent_lr_action_low_noise[i]);
+    lr_action_high_noise[i]    = Phi(latent_lr_action_high_noise[i]);
+
+    weight_for_A_low_noise[i]  = Phi(latent_weight_for_A_low_noise[i]);
+    weight_for_A_high_noise[i] = Phi(latent_weight_for_A_high_noise[i]);
+
+    beta_low_noise[i]          = exp(latent_beta_low_noise[i]);
+    beta_high_noise[i]         = exp(latent_beta_high_noise[i]);
   }
 }
 
 model {
-  // priors
-  mu_latent_lr_reward     ~ normal(0, 1);
-  sigma_latent_lr_reward  ~ normal(0, 1);     // half-normal via <lower=0>
+  // Priors for population-level parameters
+  mu_latent_lr_reward_low_noise       ~ normal(0, 0.5);
+  sigma_latent_lr_reward_low_noise    ~ normal(0, 1);
 
-  mu_latent_lr_action     ~ normal(0, 1);
-  sigma_latent_lr_action  ~ normal(0, 1);     // half-normal via <lower=0>
+  mu_latent_lr_action_low_noise       ~ normal(0, 0.5);
+  sigma_latent_lr_action_low_noise    ~ normal(0, 1);
 
-  mu_latent_weight_for_A  ~ normal(0, 1);
-  sigma_latent_weight_for_A ~ normal(0, 1);   // half-normal via <lower=0>
+  mu_latent_weight_for_A_low_noise    ~ normal(0, 0.5);
+  sigma_latent_weight_for_A_low_noise ~ normal(0, 1);
 
-  mu_latent_beta          ~ normal(0, 1);
-  sigma_latent_beta       ~ normal(0, 1);     // half-normal via <lower=0>
+  mu_latent_beta_low_noise            ~ normal(0, 0.5);
+  sigma_latent_beta_low_noise         ~ normal(0, 1);
 
-  to_vector(latent_lr_reward)     ~ normal(0, 1);
-  to_vector(latent_lr_action)     ~ normal(0, 1);
-  to_vector(latent_weight_for_A)  ~ normal(0, 1);
-  to_vector(latent_beta)          ~ normal(0, 1);
+  mu_delta_latent_lr_reward           ~ normal(0, 0.5);
+  sigma_delta_latent_lr_reward        ~ normal(0, 1);
 
-  // likelihood (inline updates)
+  mu_delta_latent_lr_action           ~ normal(0, 0.5);
+  sigma_delta_latent_lr_action        ~ normal(0, 1);
+
+  mu_delta_latent_weight_for_A        ~ normal(0, 0.5);
+  sigma_delta_latent_weight_for_A     ~ normal(0, 1);
+
+  mu_delta_latent_beta                ~ normal(0, 0.5);
+  sigma_delta_latent_beta             ~ normal(0, 1);
+
+  // Standard normals for non-centered parameterization
+  normal_lr_reward            ~ normal(0, 1);
+  normal_delta_lr_reward      ~ normal(0, 1);
+
+  normal_lr_action            ~ normal(0, 1);
+  normal_delta_lr_action      ~ normal(0, 1);
+
+  normal_weight_for_A         ~ normal(0, 1);
+  normal_delta_weight_for_A   ~ normal(0, 1);
+
+  normal_beta                 ~ normal(0, 1);
+  normal_delta_beta           ~ normal(0, 1);
+
+  // Likelihood (inline updates)
   {
     vector[n_choices] values;
     vector[n_choices] tendencies;
@@ -77,13 +168,20 @@ model {
       for (b in 1:n_blocks) {
         // reset per block
         values     = rep_vector(0.5, n_choices);
-        tendencies = rep_vector(1.0 / 3.0, n_choices);
+        tendencies = rep_vector(1.0 / n_choices, n_choices);  // was 1/3, now general
 
         int  cond   = noise_level_condition[i, b]; // 1=low, 2=high
-        real lr_r   = lr_reward[i, cond];
-        real lr_a   = lr_action[i, cond];
-        real wA     = weight_for_A[i, cond];
-        real beta_i = beta[i, cond];
+        real lr_r   = lr_reward_high_noise[i];
+        real lr_a   = lr_action_high_noise[i];
+        real wA     = weight_for_A_high_noise[i];
+        real beta_i = beta_high_noise[i];
+
+        if (cond == 1) { // if condition is low-noise
+          lr_r   = lr_reward_low_noise[i];
+          lr_a   = lr_action_low_noise[i];
+          wA     = weight_for_A_low_noise[i];
+          beta_i = beta_low_noise[i];
+        }
 
         for (t in 1:n_trials) {
           int oc = other_choices[i, b, t];
@@ -102,53 +200,6 @@ model {
           if (sc > 0) {
             combined = wA * tendencies + (1 - wA) * values;
             target += categorical_logit_lpmf(sc | beta_i * combined);
-          }
-        }
-      }
-    }
-  }
-}
-
-generated quantities {
-  // Pointwise log-likelihood for WAIC/LOO (zeros for missing choices)
-  array[n_subjects, n_blocks, n_trials] real log_lik;
-
-  {
-    vector[n_choices] values;
-    vector[n_choices] tendencies;
-    vector[n_choices] combined;
-
-    for (i in 1:n_subjects) {
-      for (b in 1:n_blocks) {
-        // reset per block
-        values     = rep_vector(0.5, n_choices);
-        tendencies = rep_vector(1.0 / 3.0, n_choices);
-
-        int  cond   = noise_level_condition[i, b];
-        real lr_r   = lr_reward[i, cond];
-        real lr_a   = lr_action[i, cond];
-        real wA     = weight_for_A[i, cond];
-        real beta_i = beta[i, cond];
-
-        for (t in 1:n_trials) {
-          int oc = other_choices[i, b, t];
-          int rw = other_rewards[i, b, t];
-          int sc = self_choices[i, b, t];
-
-          // same state updates as in model
-          if (oc > 0) {
-            tendencies -= lr_a * tendencies;
-            tendencies[oc] += lr_a;
-
-            values[oc] += lr_r * (rw - values[oc]);
-          }
-
-          // store pointwise log-lik or 0 if missing
-          if (sc > 0) {
-            combined = wA * tendencies + (1 - wA) * values;
-            log_lik[i, b, t] = categorical_logit_lpmf(sc | beta_i * combined);
-          } else {
-            log_lik[i, b, t] = 0;
           }
         }
       }
