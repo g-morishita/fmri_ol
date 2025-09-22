@@ -2,6 +2,19 @@ import pandas as pd
 import numpy as np
 from pymer4.models import Lmer
 from scipy.stats import norm
+from pathlib import Path
+
+
+class Setting:
+    BASE_DIR = Path(__file__).resolve().parent  # Directory of the current script
+    DATA_PATH = (BASE_DIR / "../../../data/preprocessed/preprocessed_data.csv").resolve()
+    period = 0
+    OUTDIR_PATH = (BASE_DIR / "results").resolve()
+
+    @staticmethod
+    def create_directories():
+        Setting.OUTDIR_PATH.mkdir(parents=True, exist_ok=True)
+
 
 def create_dataset(
         df,
@@ -108,17 +121,18 @@ def run_regression(data, period, outcome="choice_Y", interaction_var="is_partner
 
     model = Lmer(formula, data=data, family="binomial")
     model_fit = model.fit(control="optimizer='bobyqa', optCtrl = list(maxfun=5e5)")
+
     return model_fit
 
 
 if __name__ == "__main__":
-    data = pd.read_csv("../../../preprocess/preprocessed_data.csv")
+    data = pd.read_csv(Setting.DATA_PATH)
 
     results = []
     for target_choice in range(3):
-        out = create_dataset(data, target_choice, 0)
+        out = create_dataset(data, target_choice, Setting.period)
 
-        result = run_regression(out, period=0).reset_index(names='name')
+        result = run_regression(out, period=Setting.period).reset_index(names='name')
         result["Variance"] = result["SE"] ** 2
 
         results.append(result)
@@ -138,7 +152,7 @@ if __name__ == "__main__":
         combined_estimate["t_stat"] = combined_estimate["estimate"] / combined_estimate["s.e."]
         combined_estimate["p_val"] = 2 * (1 - norm.cdf(np.abs(combined_estimate["t_stat"])))
 
-    pd.DataFrame(combined_estimate).to_csv("results/combined_estimate.csv", index=False)
+    pd.DataFrame(combined_estimate).to_csv(Setting.OUTDIR_PATH / "combined_estimate.csv", index=False)
 
 
 
