@@ -138,7 +138,7 @@ if __name__ == "__main__":
         combined_estimate["t_stat"] = combined_estimate["estimate"] / combined_estimate["s.e."]
         combined_estimate["p_val"] = 2 * (1 - norm.cdf(np.abs(combined_estimate["t_stat"])))
 
-    pd.DataFrame(combined_estimate).to_csv("combined_estimate.csv", index=False)
+    pd.DataFrame(combined_estimate).to_csv("results/combined_estimate.csv", index=False)
 
 
 
