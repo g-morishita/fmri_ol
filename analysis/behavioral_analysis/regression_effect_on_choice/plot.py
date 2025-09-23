@@ -9,9 +9,9 @@ df = pd.read_csv(file_path)
 label_map = {
     'PR_minus_0': "partner's reward",
     'PC_minus_0': "partner's action",
-    'is_partner_high_expTRUE': "partner's exploration level",
-    'PR_minus_0:is_partner_high_expTRUE': "partner's reward\nx partner selection",
-    'PC_minus_0:is_partner_high_expTRUE': "partner's action\nx partner selection"
+    'is_partner_high_exp': "partner's exploration level",
+    'PR_minus_0:is_partner_high_exp': "partner's reward\nx partner selection",
+    'PC_minus_0:is_partner_high_exp': "partner's action\nx partner selection"
 }
 
 # Apply relabeling
@@ -21,8 +21,8 @@ df['name'] = df['name'].replace(label_map)
 order = [
     "partner's action",
     "partner's reward",
-    # "partner's action\nx partner selection",
-    #"partner's reward\nx partner selection"
+    "partner's action\nx partner selection",
+    "partner's reward\nx partner selection"
 ]
 n = len(order)
 
